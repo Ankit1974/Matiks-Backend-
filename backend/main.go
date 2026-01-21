@@ -17,6 +17,12 @@ import (
 )
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatal("PANIC:", r)
+		}
+	}()
+
 	if err := run(); err != nil {
 		log.Fatalf("Failed to run app: %v", err)
 	}
@@ -35,7 +41,7 @@ func run() error {
 	leaderboardService := services.NewLeaderboardService()
 
 	// Seed users in a goroutine to prevent blocking port binding (Render/deployment fix)
-	go seedUsers(leaderboardService, 10000)
+	go seedUsers(leaderboardService, 100)
 
 	// setup router
 	mux := setupRouter(leaderboardService)

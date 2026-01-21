@@ -6,6 +6,3 @@ services:
     rootDir: backend
     buildCommand: go build -o main main.go
     startCommand: ./main
-    envVars:
-      - key: PORT
-        value: 8080

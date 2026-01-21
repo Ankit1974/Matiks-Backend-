@@ -3,6 +3,7 @@ services:
     name: leaderboard-backend
     runtime: go
     plan: free
+    rootDir: backend
     buildCommand: go build -o main main.go
     startCommand: ./main
     envVars:

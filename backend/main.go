@@ -26,8 +26,8 @@ func run() error {
 	// leaderboard service
 	leaderboardService := services.NewLeaderboardService()
 
-	// Seed users
-	seedUsers(leaderboardService, 10000)
+	// Seed users in a goroutine to prevent blocking port binding
+	go seedUsers(leaderboardService, 10000)
 
 	// setup router
 	mux := setupRouter(leaderboardService)
@@ -41,14 +41,11 @@ func run() error {
 		port = "8080"
 	}
 
-	// Ensure port has a colon for ListenAndServe
-	if port[0] != ':' {
-		port = ":" + port
-	}
+	// Explicitly bind to 0.0.0.0 for Render/deployment environments
+	addr := "0.0.0.0:" + port
+	printServerInfo(addr)
 
-	printServerInfo(port)
-
-	return startServer(port, handler)
+	return startServer(addr, handler)
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -97,6 +94,7 @@ func setupRouter(s *services.LeaderboardService) *http.ServeMux {
 
 // random users added to leaderboard
 func seedUsers(service *services.LeaderboardService, count int) {
+	log.Printf("🌱 Starting to seed %d users...", count)
 	for i := 1; i <= count; i++ {
 		user := &models.User{
 			ID:       fmt.Sprintf("user_id_%d", i),
@@ -108,8 +106,9 @@ func seedUsers(service *services.LeaderboardService, count int) {
 			log.Printf("Failed to add user %s: %v", user.Username, err)
 		}
 
-		if i%1000 == 0 {
+		if i%2000 == 0 {
 			fmt.Printf("  Seeded %d users...\n", i)
 		}
 	}
+	log.Printf("✅ Successfully seeded %d users", count)
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 
 	"leaderboard/handlers"
@@ -35,7 +36,16 @@ func run() error {
 	handler := corsMiddleware(mux)
 
 	// server
-	port := ":8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Ensure port has a colon for ListenAndServe
+	if port[0] != ':' {
+		port = ":" + port
+	}
+
 	printServerInfo(port)
 
 	return startServer(port, handler)

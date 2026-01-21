@@ -31,11 +31,29 @@ func run() error {
 	// setup router
 	mux := setupRouter(leaderboardService)
 
+	// Wrap with CORS middleware
+	handler := corsMiddleware(mux)
+
 	// server
 	port := ":8080"
 	printServerInfo(port)
 
-	return startServer(port, mux)
+	return startServer(port, handler)
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 // printServerInfo prints startup information
@@ -50,8 +68,8 @@ func printServerInfo(port string) {
 }
 
 // startServer starts the HTTP server
-func startServer(port string, mux *http.ServeMux) error {
-	return http.ListenAndServe(port, mux)
+func startServer(port string, handler http.Handler) error {
+	return http.ListenAndServe(port, handler)
 }
 
 // setupRouter initializes the API routes and returns the server mux
